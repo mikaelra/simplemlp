@@ -34,8 +34,8 @@ class mlp:
         # for loop for x antall iterasjoner
         # og kanskje en for-loop for antall train targets
 
-        currentinput = inputs[0]
-        currenttarget = targets[0]
+        currentinput = inputs[-1]
+        currenttarget = targets[-1]
         delta_k, delta_j = self.backphase(self.forward(currentinput), currenttarget)
 
         for j in range(self.nhidden):
@@ -69,6 +69,7 @@ class mlp:
 
         delta_k = dif * der_out
         # Mangler delta_k til bias vekt
+        # TRENGER VI BIAS-VEKT HER??
 
         # Calculate the delta_j's from the hidden layers
         delta_j = np.zeros(self.nhidden)
@@ -77,6 +78,7 @@ class mlp:
             for k in range(len(delta_k)):
                 delta_j[j] += delta_k[k]*self.wlayer2[j][k]
                 # Må gange me den deriverte av noe mhp j
+                # Trenger også å oppdatere biasen
 
         return delta_k, delta_j
 
