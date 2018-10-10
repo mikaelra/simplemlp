@@ -33,7 +33,7 @@ for x in range(1,9):
 
 # Randomly order the data
 order = list(range(np.shape(movements)[0]))
-np.random.shuffle(order)
+#np.random.shuffle(order)
 movements = movements[order,:]
 target = target[order,:]
 

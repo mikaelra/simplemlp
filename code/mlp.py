@@ -8,6 +8,7 @@ class mlp:
     def __init__(self, inputs, targets, nhidden):
         self.beta = 1
         self.eta = 0.1
+        self.bias = 1
         self.momentum = 0.0
         self.inputs = inputs
         self.targets = targets
@@ -17,8 +18,8 @@ class mlp:
         self.outputamount = len(self.targets[0])
         # Need to construct the weight network
         # One weight from each node, pluss the bias node
-        self.wlayer1 = np.random.uniform(low=-0.7, high=0.7, size=(self.inputamount , nhidden))
-        self.wlayer2 = np.random.uniform(low=-0.7, high=0.7, size=(nhidden , self.outputamount))
+        self.wlayer1 = np.random.uniform(low=-0.7, high=0.7, size=(self.inputamount + 1 , nhidden))
+        self.wlayer2 = np.random.uniform(low=-0.7, high=0.7, size=(nhidden + 1 , self.outputamount))
 
         self.hiddennodes = np.zeros(self.nhidden)
         self.outputnodes = np.zeros(self.outputamount)
@@ -42,6 +43,7 @@ class mlp:
         # This runs the algorithm trough al the training data b iterations
         for b in range(iterations):
             choice = np.random.choice(len(inputs))
+            #choice = 50
             currentinput = inputs[choice]
             currenttarget = targets[choice]
 
@@ -51,11 +53,17 @@ class mlp:
             for j in range(self.nhidden):
                 for k in range(self.outputamount):
                     self.wlayer2[j][k] -= self.eta * delta_k[k] * self.hiddennodes[j]
+            # Change bias-weight
+            for k in range(self.outputamount):
+                self.wlayer2[-1][k] -= self.eta * delta_k[k] * self.bias
 
             # Change the weights in the first layer
             for i in range(self.inputamount):
                 for j in range(self.nhidden):
                     self.wlayer1[i][j] -= self.eta * delta_j[j] * currentinput[i]
+            # Change bias weight
+            for j in range(self.outputamount):
+                self.wlayer1[-1][j] -= self.eta * delta_j[j] * self.bias
 
     def backphase(self, outputs, targetoutputs):
         # Assumes all the data from the last forward is still stored
@@ -69,9 +77,17 @@ class mlp:
         #   OR IN BACKPROPAGATION!
         #
         dif = np.array(outputs - targetoutputs)
+        print('-----')
+        print('Outputs:')
+        print(outputs)
+        print(np.argmax(outputs))
+        print('Target outputs:')
+        print(targetoutputs)
+
         der_out = np.zeros(self.outputamount)
         for i in range(self.outputamount):
-            der_out[i] = self.relu_d(outputs[i])
+            der_out[i] = self.sigmoid_function_d(outputs[i])
+            # Sigmoid fikset denne her
 
         delta_k = dif * der_out
 
@@ -94,14 +110,18 @@ class mlp:
             for j in range(self.nhidden):
                 # Calcluates the sum of inputs
                 self.hiddennodes[j] += inputs[i]*self.wlayer1[i][j]
+        for j in range(self.nhidden):
+            self.hiddennodes[j] += self.bias*self.wlayer1[-1][j]
 
         # Start on new layer
         for i in range(self.nhidden):
             for j in range(self.outputamount):
                 self.outputnodes[j] += self.sigmoid_function(self.hiddennodes[i])*self.wlayer2[i][j]
+        for j in range(self.outputamount):
+            self.outputnodes[j] += self.bias*self.wlayer2[-1][j]
         # Calculate output to the last nodes, using linear function
         for j in range(self.outputamount):
-            self.outputnodes[j] = self.relu(self.outputnodes[j])
+            self.outputnodes[j] = self.linear(self.outputnodes[j])
 
         """
         # Not sure if I should convert output to only ones and zeros
@@ -111,7 +131,6 @@ class mlp:
         outputsp[index_max] = 1
         self.outputnodes = outputsp
         """
-
         return self.outputnodes
 
 
