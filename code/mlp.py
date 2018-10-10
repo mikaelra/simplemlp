@@ -74,22 +74,28 @@ class mlp:
         #
         #
         #   SOMETHING IS WRONG WHEN CALCLATING THE DELTAS
-        #   OR IN BACKPROPAGATION!
+        #   OR SOMETHING IS WRONG IN BACKPROPAGATION!
+        #
         #
         dif = np.array(outputs - targetoutputs)
+        """
+        # Used for testing
         print('-----')
         print('Outputs:')
         print(outputs)
+        print('Output-index er nå:')
         print(np.argmax(outputs))
         print('Target outputs:')
         print(targetoutputs)
+        """
 
+        """
+        # Using equation 4.14 from the book, our delta_k is just the difference
         der_out = np.zeros(self.outputamount)
         for i in range(self.outputamount):
-            der_out[i] = self.sigmoid_function_d(outputs[i])
-            # Sigmoid fikset denne her
-
-        delta_k = dif * der_out
+            der_out[i] = self.linear_d(outputs[i])
+        """
+        delta_k = dif #* der_out
 
         # Calculate the delta_j's from the hidden layers
         delta_j = np.zeros(self.nhidden)
@@ -131,6 +137,9 @@ class mlp:
         outputsp[index_max] = 1
         self.outputnodes = outputsp
         """
+        # Normalisere veridene??
+        # Dele på den største verdien
+        # self.outputnodes /= np.amax(self.outputnodes)
         return self.outputnodes
 
 
@@ -143,6 +152,11 @@ class mlp:
             # This adds the predicted value to the actual vector
             # A perfect neural network produces only values on the diagonal
             pred = self.forward(inputs[i])
+            print('prediction on test data')
+            print(pred)
+            print('actual target')
+            print(targets[i])
+
             confmatrix[np.argmax(pred)][:] += targets[i][:]
 
             # Adds to percentage_vector
