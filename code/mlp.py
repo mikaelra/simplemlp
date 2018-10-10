@@ -9,7 +9,6 @@ class mlp:
         self.beta = 1
         self.eta = 0.1
         self.momentum = 0.0
-        self.bias = -1
         self.inputs = inputs
         self.targets = targets
         self.nhidden = nhidden
@@ -18,8 +17,8 @@ class mlp:
         self.outputamount = len(self.targets[0])
         # Need to construct the weight network
         # One weight from each node, pluss the bias node
-        self.wlayer1 = np.ones((self.inputamount + 1, nhidden))
-        self.wlayer2 = np.ones((nhidden + 1, self.outputamount))
+        self.wlayer1 = np.random.randn(self.inputamount , nhidden)
+        self.wlayer2 = np.random.randn(nhidden , self.outputamount)
 
         self.hiddennodes = np.zeros(self.nhidden)
         self.outputnodes = np.zeros(self.outputamount)
@@ -29,45 +28,34 @@ class mlp:
     # You should add your own methods as well!
 
     def earlystopping(self, inputs, targets, valid, validtargets):
-        print('To be implemented')
-
-    def test_outputs(self, output, targetoutput):
-            print('outputs:')
-            index_max = np.argmax(output)
-            outputsp = np.zeros(len(output))
-            outputsp[index_max] = 1
-            print(outputsp)
-            print('target outputs:')
-            print(targetoutput)
+        errorsum = 1e18
+        while(errorsum > 1e-10):
+            errorsum = 0
+            self.train(inputs, targets, iterations=10)
+            for i in range(len(valid)):
+                errorsum += self.errorfunc(self.forward(valid[i]), validtargets[i])
+                #print('guess på 0-ere og enere')
+                #print(self.forward(valid[i]))
+            print('errorsummen er nå:')
+            print(errorsum/len(valid))
 
     def train(self, inputs, targets, iterations=100):
-        # for loop for x antall iterasjoner
-        # og kanskje en for-loop for antall train targets
+        # This runs the algorithm trough al the training data b iterations
         for b in range(iterations):
-            for n in range(len(inputs)):
-                currentinput = inputs[n]
-                currenttarget = targets[n]
+            currentinput = inputs[np.random.choice(len(inputs))]
+            currenttarget = targets[np.random.choice(len(targets))]
 
-                delta_k, delta_j = self.backphase(self.forward(currentinput), currenttarget)
+            delta_k, delta_j = self.backphase(self.forward(currentinput), currenttarget)
 
-                # Change the weights in the second layer
-                for j in range(self.nhidden):
-                    for k in range(self.outputamount):
-                        self.wlayer2[j][k] -= self.eta * delta_k[k] * self.hiddennodes[j]
-
-                # Change the weights on the bias for the outputnodes
+            # Change the weights in the second layer
+            for j in range(self.nhidden):
                 for k in range(self.outputamount):
-                    self.wlayer2[-1][k] -= self.eta * delta_k[k] * self.bias
+                    self.wlayer2[j][k] -= self.eta * delta_k[k] * self.hiddennodes[j]
 
-
-                # Change the weights in the first layer
-                for i in range(self.inputamount):
-                    for j in range(self.nhidden):
-                        self.wlayer1[i][j] -= self.eta * delta_j[j] * currentinput[i]
-
-                # Change the weights for the bias node
+            # Change the weights in the first layer
+            for i in range(self.inputamount):
                 for j in range(self.nhidden):
-                    self.wlayer1[-1][j] -= self.eta * delta_j[j] * self.bias
+                    self.wlayer1[i][j] -= self.eta * delta_j[j] * currentinput[i]
 
     def backphase(self, outputs, targetoutputs):
         # Assumes all the data from the last forward is still stored
@@ -88,7 +76,6 @@ class mlp:
             for k in range(len(delta_k)):
                 delta_j[j] += delta_k[k]*self.wlayer2[j][k]
                 delta_j[j] *= self.sigmoid_function_d(self.hiddennodes[j])
-                # Trenger også å oppdatere biasen
 
         return delta_k, delta_j
 
@@ -101,9 +88,6 @@ class mlp:
             for j in range(self.nhidden):
                 # Calcluates the sum of inputs
                 self.hiddennodes[j] += inputs[i]*self.wlayer1[i][j]
-        # Need to add bias weight
-        for i in range(self.nhidden):
-            self.hiddennodes[i] += self.bias*self.wlayer1[-1][i]
 
         # Calculate the output from the hidden nodes
         for j in range(self.nhidden):
@@ -114,37 +98,48 @@ class mlp:
         for i in range(self.nhidden):
             for j in range(self.outputamount):
                 self.outputnodes[j] += self.hiddennodes[i]*self.wlayer2[i][j]
-        # Need to add bias weight
-        for i in range(self.outputamount):
-            self.outputnodes += self.bias*self.wlayer2[-1][i]
         # Calculate output to the last nodes, using linear function
         for j in range(self.outputamount):
             self.outputnodes[j] = self.linear(self.outputnodes[j])
 
+
+        # Not sure if I should convert output to only ones and zeros
+        # Outputs have now numbers on every row, change so that only one of ouputs is one
+        index_max = np.argmax(self.outputnodes)
+        outputsp = np.zeros(len(self.outputnodes))
+        outputsp[index_max] = 1
+        self.outputnodes = outputsp
+
         return self.outputnodes
 
 
-
+    # Confusion matrix produces confusion matrix and how a percentage vector
+    # of how well our neural network works
     def confusion(self, inputs, targets):
-        print('To be implemented')
+        confmatrix = np.zeros((len(targets[0]),len(targets[0])))
+        percentage_vector = np.zeros((len(targets[0])))
+        for i in range(len(inputs)):
+            # This adds the predicted value to the actual vector
+            # A perfect neural network produces only values on the diagonal
+            pred = self.forward(inputs[i])
+            confmatrix[np.argmax(pred)][:] += targets[i][:]
+
+            # Adds to percentage_vector
+            actual = np.argmax(targets[i])
+            if np.argmax(pred) == actual:
+                # Adds one top the vector if it predicted correct
+                percentage_vector[actual] += 1
+        percentage_vector /= len(inputs)
+        print('confusion matrix:')
+        print(confmatrix)
+        print('Percentage correct on each class:')
+        print(percentage_vector)
 
     def sigmoid_function(self, x):
         return 1./(1 + np.exp(x))
 
     def sigmoid_function_d(self, x):
         return self.sigmoid_function(x)*(1 - self.sigmoid_function(x))
-
-    def relu(self, x):
-        if x <= 0:
-            return 0
-        else:
-            return x
-
-    def relu_d(self, x):
-        if x <= 0:
-            return 0
-        else:
-            return 1
 
     def linear(self, x):
         return x

@@ -57,14 +57,14 @@ hidden = 12
 
 # Initialize the network:
 net = mlp.mlp(train, train_targets, hidden)
-net.train(train, train_targets)
-for i in range(0, 5):
-    net.test_outputs(net.forward(train[i]), train[i])
-# Run training:
-net.earlystopping(train, train_targets, valid, valid_targets)
+#net.earlystopping(train, train_targets, valid, valid_targets)
+net.earlystopping(train, train_targets, train, train_targets)
 # NOTE: You can also call train method from here,
 #       and make train use earlystopping method.
 #       This is a matter of preference.
 
 # Check how well the network performed:
+print('test on training data (should be really good)')
+net.confusion(train, train_targets)
+print('test on test data')
 net.confusion(test,test_targets)
