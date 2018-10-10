@@ -41,8 +41,9 @@ class mlp:
     def train(self, inputs, targets, iterations=100):
         # This runs the algorithm trough al the training data b iterations
         for b in range(iterations):
-            currentinput = inputs[np.random.choice(len(inputs))]
-            currenttarget = targets[np.random.choice(len(targets))]
+            choice = np.random.choice(len(inputs))
+            currentinput = inputs[choice]
+            currenttarget = targets[choice]
 
             delta_k, delta_j = self.backphase(self.forward(currentinput), currenttarget)
 
@@ -65,12 +66,12 @@ class mlp:
         #
         #
         #   SOMETHING IS WRONG WHEN CALCLATING THE DELTAS
-        #
+        #   OR IN BACKPROPAGATION!
         #
         dif = np.array(outputs - targetoutputs)
         der_out = np.zeros(self.outputamount)
         for i in range(self.outputamount):
-            der_out[i] = self.linear_d(outputs[i])
+            der_out[i] = self.relu_d(outputs[i])
 
         delta_k = dif * der_out
 
@@ -80,7 +81,7 @@ class mlp:
         for j in range(self.nhidden):
             for k in range(len(delta_k)):
                 delta_j[j] += delta_k[k]*self.wlayer2[j][k]
-            delta_j[j] *= self.relu_d(self.hiddennodes[j])
+            delta_j[j] *= self.sigmoid_function_d(self.hiddennodes[j])
 
         return delta_k, delta_j
 
@@ -97,10 +98,10 @@ class mlp:
         # Start on new layer
         for i in range(self.nhidden):
             for j in range(self.outputamount):
-                self.outputnodes[j] += self.relu(self.hiddennodes[i])*self.wlayer2[i][j]
+                self.outputnodes[j] += self.sigmoid_function(self.hiddennodes[i])*self.wlayer2[i][j]
         # Calculate output to the last nodes, using linear function
         for j in range(self.outputamount):
-            self.outputnodes[j] = self.linear(self.outputnodes[j])
+            self.outputnodes[j] = self.relu(self.outputnodes[j])
 
         """
         # Not sure if I should convert output to only ones and zeros

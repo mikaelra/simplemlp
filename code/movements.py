@@ -8,7 +8,7 @@
 import numpy as np
 import mlp
 
-
+np.random.seed(231)
 
 filename = '../data/movements_day1-3.dat'
 
@@ -59,10 +59,10 @@ hidden = 12
 net = mlp.mlp(train, train_targets, hidden)
 #net.earlystopping(train, train_targets, valid, valid_targets)
 net.train(train, train_targets, iterations=100)
-"""
 # Check how well the network performed:
 print('test on training data (should be really good)')
 net.confusion(train, train_targets)
 print('test on test data')
 net.confusion(test,test_targets)
+"""
 """
