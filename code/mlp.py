@@ -31,51 +31,53 @@ class mlp:
     def earlystopping(self, inputs, targets, valid, validtargets):
         print('To be implemented')
 
+    def test_outputs(self, output, targetoutput):
+            print('outputs:')
+            index_max = np.argmax(output)
+            outputsp = np.zeros(len(output))
+            outputsp[index_max] = 1
+            print(outputsp)
+            print('target outputs:')
+            print(targetoutput)
+
     def train(self, inputs, targets, iterations=100):
         # for loop for x antall iterasjoner
         # og kanskje en for-loop for antall train targets
+        for b in range(iterations):
+            for n in range(len(inputs)):
+                currentinput = inputs[n]
+                currenttarget = targets[n]
 
-        currentinput = inputs[-1]
-        currenttarget = targets[-1]
-        delta_k, delta_j = self.backphase(self.forward(currentinput), currenttarget)
+                delta_k, delta_j = self.backphase(self.forward(currentinput), currenttarget)
 
-        # Change the weights in the second layer
-        for j in range(self.nhidden):
-            for k in range(self.outputamount):
-                self.wlayer2[j][k] -= self.eta * delta_k[k] * self.hiddennodes[j]
+                # Change the weights in the second layer
+                for j in range(self.nhidden):
+                    for k in range(self.outputamount):
+                        self.wlayer2[j][k] -= self.eta * delta_k[k] * self.hiddennodes[j]
 
-        # Change the weights on the bias for the outputnodes
-        for k in range(self.outputamount):
-            self.wlayer2[-1][k] -= self.eta * delta_k[k] * self.bias
-
-
-        # Change the weights in the first layer
-        for i in range(self.inputamount):
-            for j in range(self.nhidden):
-                self.wlayer1[i][j] -= self.eta * delta_j[j] * currentinput[i]
-
-        # Change the weights for the bias node
-        for j in range(self.nhidden):
-            self.wlayer1[-1][j] -= self.eta * delta_j[j] * self.bias
-
-        print('--trained--')
+                # Change the weights on the bias for the outputnodes
+                for k in range(self.outputamount):
+                    self.wlayer2[-1][k] -= self.eta * delta_k[k] * self.bias
 
 
+                # Change the weights in the first layer
+                for i in range(self.inputamount):
+                    for j in range(self.nhidden):
+                        self.wlayer1[i][j] -= self.eta * delta_j[j] * currentinput[i]
+
+                # Change the weights for the bias node
+                for j in range(self.nhidden):
+                    self.wlayer1[-1][j] -= self.eta * delta_j[j] * self.bias
 
     def backphase(self, outputs, targetoutputs):
         # Assumes all the data from the last forward is still stored
         # This should calculate the difference in the weights
 
-        print('outputs:')
-        print(outputs)
-        print('target outputs:')
-        print(targetoutputs)
-
         # Calculate the delta_k's
         dif = np.array(outputs - targetoutputs)
         der_out = np.zeros(self.outputamount)
         for i in range(self.outputamount):
-            der_out[i] = self.relu_d(outputs[i])
+            der_out[i] = self.linear_d(outputs[i])
 
         delta_k = dif * der_out
 
@@ -115,9 +117,9 @@ class mlp:
         # Need to add bias weight
         for i in range(self.outputamount):
             self.outputnodes += self.bias*self.wlayer2[-1][i]
-        # Calculate output to the last nodes, using relu
+        # Calculate output to the last nodes, using linear function
         for j in range(self.outputamount):
-            self.outputnodes[j] = self.relu(self.outputnodes[j])
+            self.outputnodes[j] = self.linear(self.outputnodes[j])
 
         return self.outputnodes
 
@@ -143,6 +145,12 @@ class mlp:
             return 0
         else:
             return 1
+
+    def linear(self, x):
+        return x
+
+    def linear_d(self, x):
+        return 1
 
     def errorfunc(self, outputs, expectedoutputs):
         sum = 0
