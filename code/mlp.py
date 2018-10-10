@@ -7,8 +7,9 @@ import numpy as np
 class mlp:
     def __init__(self, inputs, targets, nhidden):
         self.beta = 1
-        self.eta = 0.5
+        self.eta = 0.1
         self.momentum = 0.0
+        self.bias = -1
         self.inputs = inputs
         self.targets = targets
         self.nhidden = nhidden
@@ -17,8 +18,8 @@ class mlp:
         self.outputamount = len(self.targets[0])
         # Need to construct the weight network
         # One weight from each node, pluss the bias node
-        self.wlayer1 = np.random.randn(self.inputamount + 1, nhidden)
-        self.wlayer2 = np.random.randn(nhidden + 1, self.outputamount)
+        self.wlayer1 = np.ones((self.inputamount + 1, nhidden))
+        self.wlayer2 = np.ones((nhidden + 1, self.outputamount))
 
         self.hiddennodes = np.zeros(self.nhidden)
         self.outputnodes = np.zeros(self.outputamount)
@@ -38,15 +39,24 @@ class mlp:
         currenttarget = targets[-1]
         delta_k, delta_j = self.backphase(self.forward(currentinput), currenttarget)
 
+        # Change the weights in the second layer
         for j in range(self.nhidden):
             for k in range(self.outputamount):
                 self.wlayer2[j][k] -= self.eta * delta_k[k] * self.hiddennodes[j]
-                # Mangler nok enda endring på bias node
 
+        # Change the weights on the bias for the outputnodes
+        for k in range(self.outputamount):
+            self.wlayer2[-1][k] -= self.eta * delta_k[k] * self.bias
+
+
+        # Change the weights in the first layer
         for i in range(self.inputamount):
             for j in range(self.nhidden):
                 self.wlayer1[i][j] -= self.eta * delta_j[j] * currentinput[i]
-                # Forandre bias node
+
+        # Change the weights for the bias node
+        for j in range(self.nhidden):
+            self.wlayer1[-1][j] -= self.eta * delta_j[j] * self.bias
 
         print('--trained--')
 
@@ -54,7 +64,7 @@ class mlp:
 
     def backphase(self, outputs, targetoutputs):
         # Assumes all the data from the last forward is still stored
-        # This should caclulate the difference in the weights
+        # This should calculate the difference in the weights
 
         print('outputs:')
         print(outputs)
@@ -68,8 +78,6 @@ class mlp:
             der_out[i] = self.relu_d(outputs[i])
 
         delta_k = dif * der_out
-        # Mangler delta_k til bias vekt
-        # TRENGER VI BIAS-VEKT HER??
 
         # Calculate the delta_j's from the hidden layers
         delta_j = np.zeros(self.nhidden)
@@ -77,28 +85,28 @@ class mlp:
         for j in range(self.nhidden):
             for k in range(len(delta_k)):
                 delta_j[j] += delta_k[k]*self.wlayer2[j][k]
-                # Må gange me den deriverte av noe mhp j
+                delta_j[j] *= self.sigmoid_function_d(self.hiddennodes[j])
                 # Trenger også å oppdatere biasen
 
         return delta_k, delta_j
 
 
     def forward(self, inputs):
-        # This shall calculate the outputs by running the MLP one time
+        # Forward works, a perfect neural net would give the right answer everytime
 
         # Set up calculations of layer 1
-        bias = -1
         for i in range(self.inputamount):
             for j in range(self.nhidden):
                 # Calcluates the sum of inputs
                 self.hiddennodes[j] += inputs[i]*self.wlayer1[i][j]
         # Need to add bias weight
         for i in range(self.nhidden):
-            self.hiddennodes[i] += bias*self.wlayer1[-1][i]
+            self.hiddennodes[i] += self.bias*self.wlayer1[-1][i]
 
         # Calculate the output from the hidden nodes
         for j in range(self.nhidden):
             self.hiddennodes[j] = self.sigmoid_function(self.hiddennodes[j])
+
 
         # Start on new layer
         for i in range(self.nhidden):
@@ -106,7 +114,7 @@ class mlp:
                 self.outputnodes[j] += self.hiddennodes[i]*self.wlayer2[i][j]
         # Need to add bias weight
         for i in range(self.outputamount):
-            self.outputnodes += bias*self.wlayer2[-1][i]
+            self.outputnodes += self.bias*self.wlayer2[-1][i]
         # Calculate output to the last nodes, using relu
         for j in range(self.outputamount):
             self.outputnodes[j] = self.relu(self.outputnodes[j])
@@ -122,7 +130,7 @@ class mlp:
         return 1./(1 + np.exp(x))
 
     def sigmoid_function_d(self, x):
-        return sigmoid_function(x)*(1 - sigmoid_function(x))
+        return self.sigmoid_function(x)*(1 - self.sigmoid_function(x))
 
     def relu(self, x):
         if x <= 0:
@@ -141,3 +149,10 @@ class mlp:
         for i in range(len(outputs)):
             sum+= (outputs[i] - expectedoutputs[i])**2
         return 1./2 * sum
+
+    # The derivative of the bias would be 0, so define the biasfunction as x
+    def biasfunc(self, x):
+        return x
+    # So it will always change if there is an error
+    def biasfunc_d(self, x):
+        return 1

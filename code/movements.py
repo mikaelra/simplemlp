@@ -8,7 +8,7 @@
 import numpy as np
 import mlp
 
-np.random.seed(231)
+
 
 filename = '../data/movements_day1-3.dat'
 
@@ -57,6 +57,8 @@ hidden = 12
 
 # Initialize the network:
 net = mlp.mlp(train, train_targets, hidden)
+net.train(train, train_targets)
+net.train(train, train_targets)
 net.train(train, train_targets)
 net.train(train, train_targets)
 net.train(train, train_targets)
