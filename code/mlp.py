@@ -19,6 +19,7 @@ class mlp:
         # Need to construct the weight network
         # One weight from each node, pluss the bias node
 
+        # Works greit with just ones as initial weights
         weighth = 1
         weightl = 0.9
         self.wlayer1 = np.random.uniform(low=-weightl, high=weighth, size=(self.inputamount + 1 , self.nhidden))
@@ -32,8 +33,15 @@ class mlp:
     # You should add your own methods as well!
 
     def earlystopping(self, inputs, targets, valid, validtargets):
-        self.train(inputs, targets, iterations=10)
-        
+        error = 999
+        while error > 0.3:
+            self.train(inputs, targets, iterations=10)
+            error = 0
+            for i in range(len(valid)):
+                error += self.errorfunc(self.forward(valid[i]), validtargets[i])
+            error /= len(valid)
+        print('done training')
+
 
     def train(self, inputs, targets, iterations=100):
         # This runs the algorithm trough al the training data b iterations
@@ -92,13 +100,6 @@ class mlp:
 
         # Calculate the delta_k's
 
-        #
-        #
-        #   SOMETHING IS WRONG WHEN CALCLATING THE DELTAS
-        #   OR SOMETHING IS WRONG IN BACKPROPAGATION!
-        #
-        #
-
         dif = np.zeros(len(outputs))
         for i in range(len(outputs)):
             dif[i] = outputs[i] - targetoutputs[i]
@@ -109,6 +110,7 @@ class mlp:
         der_out = np.zeros(self.outputamount)
         for i in range(self.outputamount):
             der_out[i] = self.linear_d(outputs[i])
+        # Since the derivative is 1, I ignore this
         """
         delta_k = dif #* der_out
 
@@ -169,11 +171,17 @@ class mlp:
                 # Adds one top the vector if it predicted correct
                 percentage_vector[actual] += 1
 
+        # Calculates the percentage which are correct
+        # Sums up the rows and then divides the correct score on it
         for i in range(len(targets[0])):
             sum = 0
             for j in range(len(targets[0])):
                 sum += confmatrix[i][j]
-            percentage_vector[i] /= sum
+            if sum == 0:
+                percentage_vector[i] = 1
+            else:
+                percentage_vector[i] /= sum
+
 
         print('confusion matrix:')
         print(confmatrix)
@@ -205,8 +213,8 @@ class mlp:
 
     def errorfunc(self, outputs, expectedoutputs):
         sum = 0
-        if np.argmax(outputs) != np.argmax(expectedoutputs):
-            sum += 1
+        for i in range(len(outputs)):
+            sum += (outputs[i] - expectedoutputs[i])**2
         return 1./2 * sum
 
     # The derivative of the bias would be 0, so define the biasfunction as x
