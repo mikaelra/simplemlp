@@ -18,8 +18,11 @@ class mlp:
         self.outputamount = len(self.targets[0])
         # Need to construct the weight network
         # One weight from each node, pluss the bias node
-        self.wlayer1 = np.random.uniform(low=-0.7, high=0.7, size=(self.inputamount + 1 , nhidden))
-        self.wlayer2 = np.random.uniform(low=-0.7, high=0.7, size=(nhidden + 1 , self.outputamount))
+
+        weighth = 1
+        weightl = 0.9
+        self.wlayer1 = np.random.uniform(low=-weightl, high=weighth, size=(self.inputamount + 1 , self.nhidden))
+        self.wlayer2 = np.random.uniform(low=-weightl, high=weighth, size=(self.nhidden + 1 , self.outputamount))
 
         self.hiddennodes = np.zeros(self.nhidden)
         self.outputnodes = np.zeros(self.outputamount)
@@ -29,15 +32,8 @@ class mlp:
     # You should add your own methods as well!
 
     def earlystopping(self, inputs, targets, valid, validtargets):
-        errorsum = 1e18
-        #while(errorsum/len(valid) > 0.055):
-        for i in range(0, 10):
-            errorsum = 0
-            self.train(inputs, targets, iterations=10)
-            for i in range(len(valid)):
-                errorsum += self.errorfunc(self.forward(valid[i]), validtargets[i])
-            print('errorsummen er nå:')
-            print(errorsum/len(valid))
+        self.train(inputs, targets, iterations=10)
+        
 
     def train(self, inputs, targets, iterations=100):
         # This runs the algorithm trough al the training data b iterations
@@ -48,6 +44,16 @@ class mlp:
             currenttarget = targets[choice]
 
             delta_k, delta_j = self.backphase(self.forward(currentinput), currenttarget)
+            """
+            # TESTING
+            print('-----------------')
+            print('iterasjon nummer ' + str(b))
+            print('predicted')
+            print(self.forward(currentinput))
+            print('expected')
+            print(currenttarget)
+            #print(delta_k)
+            """
 
             # Change the weights in the second layer
             for j in range(self.nhidden):
@@ -62,8 +68,23 @@ class mlp:
                 for j in range(self.nhidden):
                     self.wlayer1[i][j] -= self.eta * delta_j[j] * currentinput[i]
             # Change bias weight
-            for j in range(self.outputamount):
+
+            for j in range(self.nhidden):
                 self.wlayer1[-1][j] -= self.eta * delta_j[j] * self.bias
+
+            """
+            #
+            print('-')
+            print('delta_k')
+            print(delta_k)
+            print('delta_j')
+            print(delta_j)
+            print('wlayer2[0]')
+            print(self.wlayer2[0])
+            print('wlayer1[0]')
+            print(self.wlayer1[0])
+            """
+
 
     def backphase(self, outputs, targetoutputs):
         # Assumes all the data from the last forward is still stored
@@ -77,17 +98,11 @@ class mlp:
         #   OR SOMETHING IS WRONG IN BACKPROPAGATION!
         #
         #
-        dif = np.array(outputs - targetoutputs)
-        """
-        # Used for testing
-        print('-----')
-        print('Outputs:')
-        print(outputs)
-        print('Output-index er nå:')
-        print(np.argmax(outputs))
-        print('Target outputs:')
-        print(targetoutputs)
-        """
+
+        dif = np.zeros(len(outputs))
+        for i in range(len(outputs)):
+            dif[i] = outputs[i] - targetoutputs[i]
+        #dif = np.array(outputs - targetoutputs)
 
         """
         # Using equation 4.14 from the book, our delta_k is just the difference
@@ -109,6 +124,10 @@ class mlp:
 
 
     def forward(self, inputs):
+        # Reset the nodes!!
+        self.hiddennodes = np.zeros(self.nhidden)
+        self.outputnodes = np.zeros(self.outputamount)
+
         # Forward works, a perfect neural net would give the right answer everytime
 
         # Set up calculations of layer 1
@@ -129,17 +148,6 @@ class mlp:
         for j in range(self.outputamount):
             self.outputnodes[j] = self.linear(self.outputnodes[j])
 
-        """
-        # Not sure if I should convert output to only ones and zeros
-        # Outputs have now numbers on every row, change so that only one of ouputs is one
-        index_max = np.argmax(self.outputnodes)
-        outputsp = np.zeros(len(self.outputnodes))
-        outputsp[index_max] = 1
-        self.outputnodes = outputsp
-        """
-        # Normalisere veridene??
-        # Dele på den største verdien
-        # self.outputnodes /= np.amax(self.outputnodes)
         return self.outputnodes
 
 
@@ -152,10 +160,6 @@ class mlp:
             # This adds the predicted value to the actual vector
             # A perfect neural network produces only values on the diagonal
             pred = self.forward(inputs[i])
-            print('prediction on test data')
-            print(pred)
-            print('actual target')
-            print(targets[i])
 
             confmatrix[np.argmax(pred)][:] += targets[i][:]
 
@@ -164,7 +168,13 @@ class mlp:
             if np.argmax(pred) == actual:
                 # Adds one top the vector if it predicted correct
                 percentage_vector[actual] += 1
-        percentage_vector /= len(inputs)
+
+        for i in range(len(targets[0])):
+            sum = 0
+            for j in range(len(targets[0])):
+                sum += confmatrix[i][j]
+            percentage_vector[i] /= sum
+
         print('confusion matrix:')
         print(confmatrix)
         print('Percentage correct on each class:')
