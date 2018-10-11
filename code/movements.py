@@ -8,8 +8,6 @@
 import numpy as np
 import mlp
 
-np.random.seed(2131)
-
 filename = '../data/movements_day1-3.dat'
 
 movements = np.loadtxt(filename,delimiter='\t')
@@ -53,12 +51,12 @@ test = movements[3::4,0:40]
 test_targets = target[3::4]
 
 # Try networks with different number of hidden nodes:
-hidden = 12
+hidden = 6
 
 # Initialize the network:
 net = mlp.mlp(train, train_targets, hidden)
-#net.earlystopping(train, train_targets, valid, valid_targets)
-net.train(train, train_targets, iterations=1000)
+net.earlystopping(train, train_targets, valid, valid_targets)
+#net.train(train, train_targets, iterations=1000)
 # Check how well the network performed:
 print('test on test data')
 net.confusion(test,test_targets)
