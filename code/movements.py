@@ -51,14 +51,12 @@ test = movements[3::4,0:40]
 test_targets = target[3::4]
 
 # Try networks with different number of hidden nodes:
-hidden = 6
 
-# Initialize the network:
-net = mlp.mlp(train, train_targets, hidden)
-net.earlystopping(train, train_targets, valid, valid_targets)
-#net.train(train, train_targets, iterations=1000)
-# Check how well the network performed:
-print('test on test data')
-net.confusion(test,test_targets)
-"""
-"""
+for hidden in [6, 8, 12]:
+    # Initialize the network:
+    net = mlp.mlp(train, train_targets, hidden)
+    net.earlystopping(train, train_targets, valid, valid_targets)
+
+    # Check how well the network performed:
+    print('%s hidden nodes:' %hidden)
+    net.confusion(test, test_targets)

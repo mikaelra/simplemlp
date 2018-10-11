@@ -33,14 +33,23 @@ class mlp:
     # You should add your own methods as well!
 
     def earlystopping(self, inputs, targets, valid, validtargets):
+        # Implement plotting of the error fucntion to see when
+        # it looks like we should stop the training
+
+        # Make a new function for plotting the error
+
         error = 999
+        epoch = 0
         while error > 0.3:
+            epoch+=1
             self.train(inputs, targets, iterations=10)
             error = 0
             for i in range(len(valid)):
                 error += self.errorfunc(self.forward(valid[i]), validtargets[i])
             error /= len(valid)
-        print('done training')
+            # Add that value to a list, then plot
+            # make a for loop for 100 epochs and plot
+        print('Training done! %s epochs done' %epoch)
 
 
     def train(self, inputs, targets, iterations=100):
