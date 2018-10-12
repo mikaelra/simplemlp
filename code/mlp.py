@@ -3,6 +3,7 @@
     change it to fit your needs.
 """
 import numpy as np
+import matplotlib.pyplot as plt
 
 class mlp:
     def __init__(self, inputs, targets, nhidden):
@@ -28,9 +29,22 @@ class mlp:
         self.hiddennodes = np.zeros(self.nhidden)
         self.outputnodes = np.zeros(self.outputamount)
 
+    def plotvaliderror(self, inputs, targets, valid, validtargets):
+        error = 0
+        errorlist = []
+        epoch = []
+        for i in range(0, 300):
+            epoch.append(i)
+            self.train(inputs, targets, iterations=10)
+            error = 0
+            for i in range(len(valid)):
+                error += self.errorfunc(self.forward(valid[i]), validtargets[i])
+            error /= len(valid)
+            errorlist.append(error)
+        plt.plot(epoch, errorlist)
+        plt.show()
 
 
-    # You should add your own methods as well!
 
     def earlystopping(self, inputs, targets, valid, validtargets):
         # Implement plotting of the error fucntion to see when
