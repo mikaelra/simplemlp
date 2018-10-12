@@ -50,11 +50,11 @@ valid_targets = target[1::4]
 test = movements[3::4,0:40]
 test_targets = target[3::4]
 
-# Try networks with different number of hidden nodes:
+# Plots the error over epochs, tells us what to set the minimal error to in early stopping
 net = mlp.mlp(train, train_targets, 8)
 net.plotvaliderror(train, train_targets, valid, valid_targets)
 
-"""
+# Try networks with different number of hidden nodes:
 for hidden in [6, 8, 12]:
     # Initialize the network:
     net = mlp.mlp(train, train_targets, hidden)
@@ -63,4 +63,5 @@ for hidden in [6, 8, 12]:
     # Check how well the network performed:
     print('%s hidden nodes:' %hidden)
     net.confusion(test, test_targets)
+"""
 """

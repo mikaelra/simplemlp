@@ -29,11 +29,11 @@ class mlp:
         self.hiddennodes = np.zeros(self.nhidden)
         self.outputnodes = np.zeros(self.outputamount)
 
-    def plotvaliderror(self, inputs, targets, valid, validtargets):
+    def plotvaliderror(self, inputs, targets, valid, validtargets, epochs=100):
         error = 0
         errorlist = []
         epoch = []
-        for i in range(0, 300):
+        for i in range(0, epochs):
             epoch.append(i)
             self.train(inputs, targets, iterations=10)
             error = 0
@@ -54,7 +54,7 @@ class mlp:
 
         error = 999
         epoch = 0
-        while error > 0.3:
+        while error > 0.27:
             epoch+=1
             self.train(inputs, targets, iterations=10)
             error = 0
@@ -178,7 +178,7 @@ class mlp:
 
     # Confusion matrix produces confusion matrix and how a percentage vector
     # of how well our neural network works
-    def confusion(self, inputs, targets):
+    def confusion(self, inputs, targets, printconf=True):
         confmatrix = np.zeros((len(targets[0]),len(targets[0])))
         percentage_vector = np.zeros((len(targets[0])))
         for i in range(len(inputs)):
@@ -205,11 +205,13 @@ class mlp:
             else:
                 percentage_vector[i] /= sum
 
-
-        print('confusion matrix:')
-        print(confmatrix)
+        if printconf:
+            print('confusion matrix:')
+            print(confmatrix)
         print('Percentage correct on each class:')
         print(percentage_vector)
+        print('Average percentage correct:')
+        print(np.average(percentage_vector))
 
     def sigmoid_function(self, x):
         return 1./(1 + np.exp(-x))
