@@ -135,7 +135,7 @@ class mlp:
             der_out[i] = self.linear_d(outputs[i])
         # Since the derivative is 1, I ignore this
         """
-        delta_k = dif #* der_out
+        delta_k = dif
 
         # Calculate the delta_j's from the hidden layers
         delta_j = np.zeros(self.nhidden)
@@ -178,7 +178,7 @@ class mlp:
 
     # Confusion matrix produces confusion matrix and how a percentage vector
     # of how well our neural network works
-    def confusion(self, inputs, targets, printconf=True):
+    def confusion(self, inputs, targets, printout=True):
         confmatrix = np.zeros((len(targets[0]),len(targets[0])))
         percentage_vector = np.zeros((len(targets[0])))
         for i in range(len(inputs)):
@@ -205,13 +205,15 @@ class mlp:
             else:
                 percentage_vector[i] /= sum
 
-        if printconf:
+        if printout:
             print('confusion matrix:')
             print(confmatrix)
-        print('Percentage correct on each class:')
-        print(percentage_vector)
-        print('Average percentage correct:')
-        print(np.average(percentage_vector))
+            print('Percentage correct on each class:')
+            print(percentage_vector)
+            print('Average percentage correct:')
+            print(np.average(percentage_vector))
+
+        return percentage_vector
 
     def sigmoid_function(self, x):
         return 1./(1 + np.exp(-x))

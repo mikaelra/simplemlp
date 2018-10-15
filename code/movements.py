@@ -51,7 +51,6 @@ test = movements[3::4,0:40]
 test_targets = target[3::4]
 
 # Plots the error over epochs, tells us what to set the minimal error to in early stopping
-"""
 net = mlp.mlp(train, train_targets, 8)
 net.plotvaliderror(train, train_targets, valid, valid_targets)
 
@@ -64,15 +63,16 @@ for hidden in [6, 8, 12]:
     # Check how well the network performed:
     print('%s hidden nodes:' %hidden)
     net.confusion(test, test_targets)
-"""
 
-"""
+#------------------------------------------------------#
 # Implementing k-cross validation
 # Interpreting it as splitting the data in to k different pieces
 # Then take out the same data each time as testing,
 # but use different k-s as validation and training
-"""
-
+#------------------------------------------------------#
+print()
+print('K-fold crossvalidation:')
+print()
 # Testk is the same testing
 # Use testk as test for all k
 testk = movements[400::,0:40]
@@ -80,8 +80,6 @@ testk_targets = target[400::]
 
 restk = movements[:400, 0:40]
 restk_targets = target[:400]
-
-# Trenger å ta med tilhørende targets!!!
 
 
 
@@ -91,6 +89,9 @@ restk_targets = target[:400]
 
 # Will split up restk into 10 pieces
 k = 10
+percentagematrix = np.zeros((k, 8))
+# I declare a matrix where I will store how well each k-fold did
+
 # Now starts the k-fold
 for i in range(k):
     # This just splits it up in even pieces
@@ -105,13 +106,31 @@ for i in range(k):
     testpieces.pop(i)
     kvalid_targets = testpieces_targets[i]
     testpieces_targets.pop(i)
-    ktest = []
-    ktest_targets = []
-    for j in range(k-1):
-        ktest.append(testpieces[j][0:40])
-        ktest_targets.append(testpieces_targets[j])
 
-    # Check that all the lists are correct
+    # This takes a new set as the validation each time
+
+    ktrain = []
+    ktrain_targets = []
+    for j in range(k-1):
+        for t in testpieces:
+            for b in t:
+                ktrain.append(b)
+                # This just runs through all the different 'x-es' and adds them
+                # to the current training set
+        for t in testpieces_targets:
+            for b in t:
+                ktrain_targets.append(b)
+
+    net = mlp.mlp(ktrain, ktrain_targets, 8)
+    net.earlystopping(ktrain, ktrain_targets, kvalid, kvalid_targets)
+    pvector = net.confusion(testk, testk_targets, printout=False)
+    # Adds the percentage correct to a the matrix with percentages
+    percentagematrix[i][:] = pvector
+
+print('Average percentage correct of each class:')
+print(np.average(percentagematrix, axis=0))
+print('Standard deviation of the percentages:')
+print(np.std(percentagematrix, axis=0))
 
 
 
