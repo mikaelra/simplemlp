@@ -76,9 +76,52 @@ for hidden in [6, 8, 12]:
 # Testk is the same testing
 # Use testk as test for all k
 testk = movements[400::,0:40]
+testk_targets = target[400::]
+
 restk = movements[:400, 0:40]
+restk_targets = target[:400]
+
+# Trenger å ta med tilhørende targets!!!
+
+
+
+
 # Need to split restk into 10 different pieces
-# THen use new piece as validation each time
+# Then use new piece as validation each time
+
+# Will split up restk into 10 pieces
+k = 10
+# Now starts the k-fold
+for i in range(k):
+    # This just splits it up in even pieces
+    # Doesn't necesserily work for other k
+    testpieces = []
+    testpieces_targets = []
+    for j in range(k):
+        testpieces.append(restk[j*40:j*40 + 40 ,0:40])
+        testpieces_targets.append(restk_targets[j*40:j*40 + 40])
+
+    kvalid = testpieces[i]
+    testpieces.pop(i)
+    kvalid_targets = testpieces_targets[i]
+    testpieces_targets.pop(i)
+    ktest = []
+    ktest_targets = []
+    for j in range(k-1):
+        ktest.append(testpieces[j][0:40])
+        ktest_targets.append(testpieces_targets[j])
+
+    # Check that all the lists are correct
+
+
+
+
+
+
+
+
+
+
 
 
 
