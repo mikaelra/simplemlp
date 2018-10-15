@@ -31,7 +31,7 @@ for x in range(1,9):
 
 # Randomly order the data
 order = list(range(np.shape(movements)[0]))
-#np.random.shuffle(order)
+np.random.shuffle(order)
 movements = movements[order,:]
 target = target[order,:]
 
@@ -51,6 +51,7 @@ test = movements[3::4,0:40]
 test_targets = target[3::4]
 
 # Plots the error over epochs, tells us what to set the minimal error to in early stopping
+"""
 net = mlp.mlp(train, train_targets, 8)
 net.plotvaliderror(train, train_targets, valid, valid_targets)
 
@@ -64,4 +65,23 @@ for hidden in [6, 8, 12]:
     print('%s hidden nodes:' %hidden)
     net.confusion(test, test_targets)
 """
+
 """
+# Implementing k-cross validation
+# Interpreting it as splitting the data in to k different pieces
+# Then take out the same data each time as testing,
+# but use different k-s as validation and training
+"""
+
+# Testk is the same testing
+# Use testk as test for all k
+testk = movements[400::,0:40]
+restk = movements[:400, 0:40]
+# Need to split restk into 10 different pieces
+# THen use new piece as validation each time
+
+
+
+
+
+#
